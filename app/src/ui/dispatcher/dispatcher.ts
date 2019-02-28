@@ -1461,6 +1461,39 @@ export class Dispatcher {
     )
   }
 
+  public confirmForcePush(repository: Repository) {
+    const { askForConfirmationOnForcePush } = this.appStore.getState()
+
+    const { branchesState } = this.repositoryStateManager.get(repository)
+    const { tip } = branchesState
+
+    if (tip.kind !== TipState.Valid) {
+      log.warn(`Could not find a branch to perform force push`)
+      return
+    }
+
+    const { upstream } = tip.branch
+
+    if (upstream === null) {
+      log.warn(`Could not find an upstream branch which will be pushed`)
+      return
+    }
+
+    if (askForConfirmationOnForcePush) {
+      this.showPopup({
+        type: PopupType.ConfirmForcePush,
+        repository,
+        upstreamBranch: upstream,
+      })
+    } else {
+      this.push(repository, { forceWithLease: true })
+    }
+  }
+
+  public setConfirmForcePushSetting(value: boolean) {
+    return this.appStore._setConfirmForcePushSetting(value)
+  }
+
   /**
    * Updates the application state to indicate a conflict is in-progress
    * as a result of a pull and increments the relevant metric.
