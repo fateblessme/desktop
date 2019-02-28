@@ -3375,16 +3375,20 @@ export class AppStore extends TypedBaseStore<IAppState> {
     targetBranch: string
   ) {
     const gitStore = this.gitStoreCache.get(repository)
-    return await gitStore.performFailableOperation(() =>
-      rebase(repository, baseBranch, targetBranch)
+    return (
+      (await gitStore.performFailableOperation(() =>
+        rebase(repository, baseBranch, targetBranch)
+      )) || RebaseResult.UnknownError
     )
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _abortRebase(repository: Repository): Promise<void> {
+  public async _abortRebase(repository: Repository) {
     const gitStore = this.gitStoreCache.get(repository)
-    return await gitStore.performFailableOperation(() =>
-      abortRebase(repository)
+    return (
+      (await gitStore.performFailableOperation(() =>
+        abortRebase(repository)
+      )) || RebaseResult.UnknownError
     )
   }
 
@@ -3399,8 +3403,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
       return f.status.kind !== AppFileStatusKind.Untracked
     })
 
-    return await gitStore.performFailableOperation(() =>
-      continueRebase(repository, trackedFiles)
+    return (
+      (await gitStore.performFailableOperation(() =>
+        continueRebase(repository, trackedFiles)
+      )) || RebaseResult.UnknownError
     )
   }
 

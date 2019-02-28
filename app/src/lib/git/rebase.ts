@@ -119,6 +119,7 @@ export enum RebaseResult {
   ConflictsEncountered = 'ConflictsEncountered',
   OutstandingFilesNotStaged = 'OutstandingFilesNotStaged',
   Aborted = 'Aborted',
+  UnknownError = 'UnknownError',
 }
 
 function parseRebaseResult(result: IGitResult): RebaseResult {
