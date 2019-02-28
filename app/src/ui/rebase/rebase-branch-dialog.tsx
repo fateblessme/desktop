@@ -159,6 +159,8 @@ export class RebaseBranchDialog extends React.Component<
       return
     }
 
+    // TODO: transition to a rebase progress dialog
+
     this.setState({ isRebasing: true })
 
     await this.props.dispatcher.rebase(
@@ -168,6 +170,8 @@ export class RebaseBranchDialog extends React.Component<
     )
 
     this.setState({ isRebasing: false })
+
+    this.props.onDismissed()
   }
 
   /**
