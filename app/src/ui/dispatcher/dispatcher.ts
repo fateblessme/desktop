@@ -623,6 +623,40 @@ export class Dispatcher {
     return this.appStore._mergeBranch(repository, branch, mergeStatus)
   }
 
+  private addRebasedBranchToForcePushList = (
+    repository: Repository,
+    tipWithBranch: IValidBranch
+  ) => {
+    const currentState = this.repositoryStateManager.get(repository)
+    const { rebasedBranches } = currentState.branchesState
+
+    const updatedMap = new Map<string, string>(rebasedBranches)
+    updatedMap.set(
+      tipWithBranch.branch.nameWithoutRemote,
+      tipWithBranch.branch.tip.sha
+    )
+
+    this.repositoryStateManager.updateBranchesState(repository, () => ({
+      rebasedBranches: updatedMap,
+    }))
+  }
+
+  private dropCurrentBranchFromForcePushList = (repository: Repository) => {
+    const currentState = this.repositoryStateManager.get(repository)
+    const { rebasedBranches, tip } = currentState.branchesState
+
+    if (tip.kind !== TipState.Valid) {
+      return
+    }
+
+    const updatedMap = new Map<string, string>(rebasedBranches)
+    updatedMap.delete(tip.branch.nameWithoutRemote)
+
+    this.repositoryStateManager.updateBranchesState(repository, () => ({
+      rebasedBranches: updatedMap,
+    }))
+  }
+
   /** Starts a rebase for the given base and target branch */
   public async rebase(
     repository: Repository,
@@ -658,7 +692,10 @@ export class Dispatcher {
     )
 
     if (result === RebaseResult.CompletedWithoutError) {
-      this.closePopup()
+      if (tip.kind === TipState.Valid) {
+        this.addRebasedBranchToForcePushList(repository, tip)
+      }
+
       this.setBanner({
         type: BannerType.SuccessfulRebase,
         targetBranch: targetBranch,
@@ -703,15 +740,19 @@ export class Dispatcher {
 
     const { conflictState } = stateBefore.changesState
 
-    if (
-      result === RebaseResult.CompletedWithoutError &&
-      conflictState !== null &&
-      isRebaseConflictState(conflictState)
-    ) {
-      this.setBanner({
-        type: BannerType.SuccessfulRebase,
-        targetBranch: conflictState.targetBranch,
-      })
+    if (result === RebaseResult.CompletedWithoutError) {
+      if (tip.kind === TipState.Valid) {
+        this.addRebasedBranchToForcePushList(repository, tip)
+      }
+
+      this.closePopup()
+
+      if (conflictState !== null && isRebaseConflictState(conflictState)) {
+        this.setBanner({
+          type: BannerType.SuccessfulRebase,
+          targetBranch: conflictState.targetBranch,
+        })
+      }
     }
 
     return result
