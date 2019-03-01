@@ -1908,7 +1908,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     let branchWasRebased = false
     if (tip.kind === TipState.Valid) {
       const localBranchName = tip.branch.nameWithoutRemote
-      const sha = tip.branch.tip.sha
+      const { sha } = tip.branch.tip
       const foundEntry = rebasedBranches.get(localBranchName)
       branchWasRebased = foundEntry === sha
     }
