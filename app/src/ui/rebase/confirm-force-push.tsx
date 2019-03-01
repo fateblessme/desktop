@@ -48,7 +48,7 @@ export class ConfirmForcePush extends React.Component<
             working on this branch will need to reset their own local branch to
             match the history of the remote.
           </p>
-          <p>
+          <div>
             <Checkbox
               label="Do not show this message again"
               value={
@@ -58,7 +58,7 @@ export class ConfirmForcePush extends React.Component<
               }
               onChange={this.onAskForConfirmationOnForcePushChanged}
             />
-          </p>
+          </div>
         </DialogContent>
         <DialogFooter>
           <ButtonGroup>
