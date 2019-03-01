@@ -1457,7 +1457,7 @@ export class Dispatcher {
     )
   }
 
-  public confirmForcePush(repository: Repository) {
+  public async confirmOrForcePush(repository: Repository) {
     const { askForConfirmationOnForcePush } = this.appStore.getState()
 
     const { branchesState } = this.repositoryStateManager.get(repository)
@@ -1482,8 +1482,16 @@ export class Dispatcher {
         upstreamBranch: upstream,
       })
     } else {
-      this.push(repository, { forceWithLease: true })
+      await this.performForcePush(repository)
     }
+  }
+
+  public async performForcePush(repository: Repository) {
+    await this.push(repository, {
+      forceWithLease: true,
+    })
+
+    await this.loadStatus(repository)
   }
 
   public setConfirmForcePushSetting(value: boolean) {

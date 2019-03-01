@@ -250,7 +250,7 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, {}> {
     const { ahead, behind } = aheadBehind
 
     if (isBranchRebased(branchWasRebased, aheadBehind)) {
-      dispatcher.confirmForcePush(repository)
+      dispatcher.confirmOrForcePush(repository)
     } else if (behind > 0) {
       dispatcher.pull(repository)
     } else if (ahead > 0) {

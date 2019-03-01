@@ -83,8 +83,7 @@ export class ConfirmForcePush extends React.Component<
       this.state.askForConfirmationOnForcePush
     )
     this.props.onDismissed()
-    await this.props.dispatcher.push(this.props.repository, {
-      forceWithLease: true,
-    })
+
+    await this.props.dispatcher.performForcePush(this.props.repository)
   }
 }
