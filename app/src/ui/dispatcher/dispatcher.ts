@@ -666,7 +666,7 @@ export class Dispatcher {
     repository: Repository,
     baseBranch: string,
     targetBranch: string
-  ) {
+  ): Promise<void> {
     const stateBefore = this.repositoryStateManager.get(repository)
 
     const beforeSha = getTipSha(stateBefore.branchesState.tip)
@@ -706,8 +706,6 @@ export class Dispatcher {
         baseBranch: baseBranch,
       })
     }
-
-    return result
   }
 
   /** aborts the current rebase and refreshes the repository's status */
@@ -719,7 +717,7 @@ export class Dispatcher {
   public async continueRebase(
     repository: Repository,
     workingDirectory: WorkingDirectoryStatus
-  ) {
+  ): Promise<void> {
     const stateBefore = this.repositoryStateManager.get(repository)
 
     const beforeSha = getTipSha(stateBefore.branchesState.tip)
@@ -758,8 +756,6 @@ export class Dispatcher {
         })
       }
     }
-
-    return result
   }
 
   /** aborts an in-flight merge and refreshes the repository's status */
