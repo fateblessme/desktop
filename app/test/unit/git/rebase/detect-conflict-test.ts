@@ -278,4 +278,45 @@ describe('git/rebase', () => {
       expect(status.currentTip).not.toBe(beforeRebaseTip.sha)
     })
   })
+
+  describe('continue with tracked change omitted from list', () => {
+    let result: ContinueRebaseResult
+
+    beforeEach(async () => {
+      const repository = await createRepository(baseBranch, featureBranch)
+
+      await rebase(repository, baseBranch, featureBranch)
+
+      // resolve conflicts by writing files to disk
+      await FSE.writeFile(
+        Path.join(repository.path, 'THING.md'),
+        '# HELLO WORLD! \nTHINGS GO HERE\nFEATURE BRANCH UNDERWAY\n'
+      )
+
+      await FSE.writeFile(
+        Path.join(repository.path, 'OTHER.md'),
+        '# HELLO WORLD! \nTHINGS GO HERE\nALSO FEATURE BRANCH UNDERWAY\n'
+      )
+
+      // change unrelated tracked while rebasing changes
+      await FSE.writeFile(
+        Path.join(repository.path, 'THIRD.md'),
+        'this change should be included in the latest commit'
+      )
+
+      const afterRebase = await getStatusOrThrow(repository)
+
+      const { files } = afterRebase.workingDirectory
+
+      // omit the last change should cause Git to error because it requires
+      // all tracked changes to be staged as a prerequisite for rebasing
+      const onlyConflictedFiles = files.filter(f => f.path !== 'THIRD.md')
+
+      result = await continueRebase(repository, onlyConflictedFiles)
+    })
+
+    it('returns error code indicating that required files were missing', () => {
+      expect(result).toBe(ContinueRebaseResult.OutstandingFilesNotStaged)
+    })
+  })
 })
