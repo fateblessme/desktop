@@ -151,6 +151,10 @@ export async function continueRebase(
   files: ReadonlyArray<WorkingDirectoryFileChange>,
   manualResolutions: ReadonlyMap<string, ManualConflictResolution> = new Map()
 ): Promise<ContinueRebaseResult> {
+  const trackedFiles = files.filter(f => {
+    return f.status.kind !== AppFileStatusKind.Untracked
+  })
+
   // apply conflict resolutions
   for (const [path, resolution] of manualResolutions) {
     const file = files.find(f => f.path === path)
@@ -163,7 +167,7 @@ export async function continueRebase(
     }
   }
 
-  const otherFiles = files.filter(f => !manualResolutions.has(f.path))
+  const otherFiles = trackedFiles.filter(f => !manualResolutions.has(f.path))
 
   await stageFiles(repository, otherFiles)
 
@@ -176,11 +180,11 @@ export async function continueRebase(
     return ContinueRebaseResult.Aborted
   }
 
-  const trackedFiles = status.workingDirectory.files.filter(
+  const trackedFilesAfter = status.workingDirectory.files.filter(
     f => f.status.kind !== AppFileStatusKind.Untracked
   )
 
-  if (trackedFiles.length === 0) {
+  if (trackedFilesAfter.length === 0) {
     const rebaseHead = Path.join(repository.path, '.git', 'REBASE_HEAD')
     const rebaseCurrentCommit = await FSE.readFile(rebaseHead)
 
