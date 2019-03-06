@@ -10,6 +10,12 @@ import { RelativeTime } from '../relative-time'
 import { FetchType } from '../../models/fetch'
 import { enablePullWithRebase } from '../../lib/feature-flag'
 
+const ForcePushOcticon = new OcticonSymbol(
+  16,
+  15,
+  'M3 10.5L5.5 10.5L5.5 14L5.5 14.5L6 14.5L10 14.5L10.5 14.5L10.5 14L10.5 10.5L13 10.5L14.0675 10.5L13.3841 9.67991L8.38411 3.67991L8 3.21897L7.61589 3.67991L2.61589 9.67991L1.93248 10.5L3 10.5Z'
+)
+
 interface IPushPullButtonProps {
   /**
    * The ahead/behind count for the current branch. If null, it indicates the
@@ -193,7 +199,7 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, {}> {
     }
 
     if (this.props.branchWasRebased) {
-      return OcticonSymbol.repoForcePush
+      return ForcePushOcticon
     }
 
     if (behind > 0) {
