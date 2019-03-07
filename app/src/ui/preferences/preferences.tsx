@@ -346,6 +346,10 @@ export class Preferences extends React.Component<
       this.state.confirmRepositoryRemoval
     )
 
+    await this.props.dispatcher.setConfirmForcePushSetting(
+      this.state.confirmForcePush
+    )
+
     if (this.state.selectedExternalEditor) {
       await this.props.dispatcher.setExternalEditor(
         this.state.selectedExternalEditor
