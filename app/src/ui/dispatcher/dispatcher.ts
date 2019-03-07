@@ -627,10 +627,21 @@ export class Dispatcher {
     return this.appStore._mergeBranch(repository, branch, mergeStatus)
   }
 
+  /**
+   * Update the per-repository list of branches that can be force-pushed
+   * after a rebase is completed.
+   */
   private addRebasedBranchToForcePushList = (
     repository: Repository,
-    tipWithBranch: IValidBranch
+    tipWithBranch: IValidBranch,
+    beforeRebaseSha: string
   ) => {
+    // if the commit id of the branch is unchanged, it can be excluded from
+    // this list
+    if (tipWithBranch.branch.tip.sha === beforeRebaseSha) {
+      return
+    }
+
     const currentState = this.repositoryStateManager.get(repository)
     const { rebasedBranches } = currentState.branchesState
 
@@ -697,7 +708,7 @@ export class Dispatcher {
 
     if (result === RebaseResult.CompletedWithoutError) {
       if (tip.kind === TipState.Valid) {
-        this.addRebasedBranchToForcePushList(repository, tip)
+        this.addRebasedBranchToForcePushList(repository, tip, beforeSha)
       }
 
       this.setBanner({
@@ -743,10 +754,6 @@ export class Dispatcher {
     const { conflictState } = stateBefore.changesState
 
     if (result === RebaseResult.CompletedWithoutError) {
-      if (tip.kind === TipState.Valid) {
-        this.addRebasedBranchToForcePushList(repository, tip)
-      }
-
       this.closePopup()
 
       if (conflictState !== null && isRebaseConflictState(conflictState)) {
@@ -754,6 +761,14 @@ export class Dispatcher {
           type: BannerType.SuccessfulRebase,
           targetBranch: conflictState.targetBranch,
         })
+
+        if (tip.kind === TipState.Valid) {
+          this.addRebasedBranchToForcePushList(
+            repository,
+            tip,
+            conflictState.originalBranchTip
+          )
+        }
       }
     }
   }
